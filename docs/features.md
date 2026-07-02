@@ -59,3 +59,15 @@ Added manual dropdown selections under settings to let users customize:
 * The bridge retrieves your actual LAN IP dynamically via socket connections.
 * The Settings page generates a scan-ready QR code pointing to `http://<LAN_IP>:3000`.
 * Double-clicking the launcher prints a large terminal QR code. Users can scan this with their phone to control their PC remotely instantly.
+
+---
+
+## 6. First-Run Resource Footprint
+
+To ensure high performance and complete privacy with offline voice capability, the application downloads and installs key frameworks during the first startup:
+
+* **Node.js dependencies (`node_modules`):** ~50MB download / ~180MB on disk. Serves the Vite React single-page UI application.
+* **Python virtual environment (`venv`):** ~30MB download / ~110MB on disk. Installs core automation libraries (PyAutoGUI, Edge-TTS, etc.).
+* **Vosk Speech Model (`models/hi`):** ~45MB ZIP download / ~55MB extracted on disk. Enables offline, private speech recognition for Hindi/English.
+* **Total Resource footprint:** **~125MB Network Download / ~345MB Disk Space**.
+

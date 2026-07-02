@@ -95,6 +95,20 @@
 | **pip** | (comes with Python) | — |
 | **Browser** | Chrome / Edge / Firefox | Any modern browser |
 
+### 📦 First-Run Download & Disk Footprint
+
+When you start the application for the first time, dependencies and offline models are downloaded automatically. Here is the breakdown:
+
+| Component | Network Download Size | Disk Space Occupied (Extracted) | Purpose |
+|:---|:---:|:---:|:---|
+| **Node.js dependencies (`node_modules`)** | ~50 MB | ~180 MB | Runs the Vite React Frontend UI |
+| **Python Virtual Environment (`venv`)** | ~30 MB | ~110 MB | Installs bridge libraries (pyautogui, edge-tts, etc.) |
+| **Vosk Hindi Speech Model (`models/hi`)** | ~45 MB | ~55 MB | Enables 100% local, offline Hindi voice recognition |
+| **TOTAL INITIAL FOOTPRINT** | **~125 MB** | **~345 MB** | **Smooth, lightweight, and fully production-ready** |
+
+> [!NOTE]
+> The Vosk model download of **~45 MB** is a one-time process that triggers automatically on running `start.bat` only if you choose to use the local offline speech engine.
+
 ### 🔑 API Key (Any ONE)
 
 | Provider | Link | Free? | Speed |
