@@ -21,15 +21,10 @@ cd /d "%PROJECT_DIR%"
 
 cls
 echo.
-echo %M%   ____  _ _              _     ___ %N%
-echo %M%  ^|  _ \(_) ^| ____ _     / \   ^|_ _^|%N%
-echo %M%  ^| ^|_) ^| ^| ^|/ / _` ^|   / _ \   ^| ^| %N%
-echo %M%  ^|  __/^| ^|   ^< (_^| ^|  / ___ \  ^| ^| %N%
-echo %M%  ^|_^|   ^|_^|_^|\_\__,_^| /_/   \_\___^|%N%
-echo.
-echo %C%  ==========================================================%N%
-echo %C%     PIKA AI ASSISTANT Launcher v4.0.0 - Production Mode%N%
-echo %C%  ==========================================================%N%
+echo %M%   ==========================================================%N%
+echo %M%    P I K A   A I   D E S K T O P   A S S I S T A N T%N%
+echo %M%    [ Version 4.0.0 — Production Build ]%N%
+echo %M%   ==========================================================%N%
 echo.
 
 :: --- [1/5] Checking Python ---
@@ -55,13 +50,13 @@ if !ERRORLEVEL! EQU 0 (
 )
 
 :: Python Error Box
-echo %R%  +--------------------------------------------------------+%N%
-echo %R%  ^| ❌ ERROR: Python not found!                            ^|%N%
-echo %R%  +--------------------------------------------------------+%N%
-echo %R%  ^| 1. Download Python 3.10+ from: https://python.org      ^|%N%
-echo %R%  ^| 2. Check the box \"Add Python to PATH\" during install   ^|%N%
-echo %R%  ^| 3. Restart your terminal and run start.bat again.      ^|%N%
-echo %R%  +--------------------------------------------------------+%N%
+echo %R%  [========================================================]%N%
+echo %R%  [ ❌ ERROR: Python not found!                            ]%N%
+echo %R%  [========================================================]%N%
+echo %R%  [ 1. Download Python 3.10+ from: https://python.org      ]%N%
+echo %R%  [ 2. Check the box \"Add Python to PATH\" during install   ]%N%
+echo %R%  [ 3. Restart your terminal and run start.bat again.      ]%N%
+echo %R%  [========================================================]%N%
 pause
 exit /b 1
 
@@ -74,13 +69,13 @@ where node >nul 2>&1
 if !ERRORLEVEL! EQU 0 goto :node_found
 
 :: Node Error Box
-echo %R%  +--------------------------------------------------------+%N%
-echo %R%  ^| ❌ ERROR: Node.js not found!                           ^|%N%
-echo %R%  +--------------------------------------------------------+%N%
-echo %R%  ^| 1. Download Node.js (LTS version) from:                ^|%N%
-echo %R%  ^|    https://nodejs.org                                  ^|%N%
-echo %R%  ^| 2. Install it and run start.bat again.                 ^|%N%
-echo %R%  +--------------------------------------------------------+%N%
+echo %R%  [========================================================]%N%
+echo %R%  [ ❌ ERROR: Node.js not found!                           ]%N%
+echo %R%  [========================================================]%N%
+echo %R%  [ 1. Download Node.js (LTS version) from:                ]%N%
+echo %R%  [    https://nodejs.org                                  ]%N%
+echo %R%  [ 2. Install it and run start.bat again.                 ]%N%
+echo %R%  [========================================================]%N%
 pause
 exit /b 1
 
@@ -104,12 +99,12 @@ if !ERRORLEVEL! EQU 0 (
 )
 
 :: venv Error Box
-echo %R%  +--------------------------------------------------------+%N%
-echo %R%  ^| ❌ ERROR: Virtual environment creation failed!          ^|%N%
-echo %R%  +--------------------------------------------------------+%N%
-echo %R%  ^| Python installation is broken or permissions are       ^|%N%
-echo %R%  ^| missing. Try running CMD as Administrator.             ^|%N%
-echo %R%  +--------------------------------------------------------+%N%
+echo %R%  [========================================================]%N%
+echo %R%  [ ❌ ERROR: Virtual environment creation failed!          ]%N%
+echo %R%  [========================================================]%N%
+echo %R%  [ Python installation is broken or permissions are       ]%N%
+echo %R%  [ missing. Try running CMD as Administrator.             ]%N%
+echo %R%  [========================================================]%N%
 pause
 exit /b 1
 
@@ -148,12 +143,12 @@ call npm install --no-audit --no-fund --quiet --loglevel=error
 if !ERRORLEVEL! EQU 0 (
     echo   [ %G%✓%N% ] Node.js packages are fully updated.
 ) else (
-    echo %R%  +--------------------------------------------------------+%N%
-    echo %R%  ^| ❌ ERROR: npm install failed!                          ^|%N%
-    echo %R%  +--------------------------------------------------------+%N%
-    echo %R%  ^| Please check your internet connection and try running  ^|%N%
-    echo %R%  ^| \"npm install\" manually in this directory.               ^|%N%
-    echo %R%  +--------------------------------------------------------+%N%
+    echo %R%  [========================================================]%N%
+    echo %R%  [ ❌ ERROR: npm install failed!                          ]%N%
+    echo %R%  [========================================================]%N%
+    echo %R%  [ Please check your internet connection and try running  ]%N%
+    echo %R%  [ \"npm install\" manually in this directory.               ]%N%
+    echo %R%  [========================================================]%N%
     pause
     exit /b 1
 )
@@ -187,15 +182,15 @@ ping -n 3 127.0.0.1 >nul
 start "" "http://localhost:3000"
 
 echo.
-echo %G%  +--------------------------------------------------------+%N%
-echo %G%  ^| 🚀 ALL SYSTEMS GO! Pika AI Assistant is running!      ^|%N%
-echo %G%  +--------------------------------------------------------+%N%
-echo %G%  ^|  Web UI:     %Y%http://localhost:3000%N%                       %G%^|%N%
-echo %G%  ^|  PC Bridge:  %Y%ws://localhost:8765%N%                         %G%^|%N%
-echo %G%  ^|                                                        ^|%N%
-echo %G%  ^|  MOBILE SYNC (Same WiFi):                              ^|%N%
-echo %G%  ^|  Url:        %C%http://!LAN_IP!:3000%N%                        %G%^|%N%
-echo %G%  +--------------------------------------------------------+%N%
+echo %G%  [========================================================]%N%
+echo %G%  [ 🚀 ALL SYSTEMS GO! Pika AI Assistant is running!      ]%N%
+echo %G%  [========================================================]%N%
+echo %G%  [  Web UI:     %Y%http://localhost:3000%N%                       %G% ]%N%
+echo %G%  [  PC Bridge:  %Y%ws://localhost:8765%N%                         %G% ]%N%
+echo %G%  [                                                        ]%N%
+echo %G%  [  MOBILE SYNC (Same WiFi):                              ]%N%
+echo %G%  [  Url:        %C%http://!LAN_IP!:3000%N%                        %G% ]%N%
+echo %G%  [========================================================]%N%
 echo.
 echo   %C%Scan this QR Code with your phone to sync instantly:%N%
 echo.
