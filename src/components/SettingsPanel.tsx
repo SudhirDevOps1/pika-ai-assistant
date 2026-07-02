@@ -170,6 +170,45 @@ export function SettingsPanel() {
               <option value="en-US" className="bg-navy-800">English (Jenny)</option>
             </select>
           </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/70">सुनने का इंजन (STT)</span>
+            <select
+              value={settings.voiceSettings.sttEngine}
+              onChange={(e) =>
+                updateSettings({
+                  voiceSettings: {
+                    ...settings.voiceSettings,
+                    sttEngine: e.target.value as "vosk" | "webspeech",
+                  },
+                })
+              }
+              className="rounded-lg bg-white/10 px-3 py-1.5 text-sm text-white outline-none"
+            >
+              <option value="webspeech" className="bg-navy-800">वेब स्पीच (Online Browser)</option>
+              <option value="vosk" className="bg-navy-800">पिका वॉयस (Offline PC)</option>
+            </select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/70">बोलने का इंजन (TTS)</span>
+            <select
+              value={settings.voiceSettings.ttsEngine}
+              onChange={(e) =>
+                updateSettings({
+                  voiceSettings: {
+                    ...settings.voiceSettings,
+                    ttsEngine: e.target.value as "edgetts" | "webspeech",
+                  },
+                })
+              }
+              className="rounded-lg bg-white/10 px-3 py-1.5 text-sm text-white outline-none"
+            >
+              <option value="edgetts" className="bg-navy-800">न्यूरल वॉयस (Online PC)</option>
+              <option value="webspeech" className="bg-navy-800">लोकल वॉयस (Offline Browser)</option>
+            </select>
+          </div>
+
           <div>
             <div className="mb-1 flex justify-between text-sm text-white/70">
               <span>गति</span>

@@ -224,6 +224,30 @@ export function useAssistant() {
       }
       if (msg.done) {
         store.getState().finalizeMessage(streamId.current);
+        const finalMsg = store.getState().messages.find((m) => m.id === streamId.current);
+        const cleanText = finalMsg ? finalMsg.content.replace(/\[COMMAND:.*?\]/g, "").trim() : "";
+
+        if (cleanText) {
+          const v = store.getState().settings.voiceSettings;
+          if (v.ttsEngine === "edgetts") {
+            sendRaw({
+              type: "tts_speak",
+              params: { text: cleanText, voice: v.language === "hi-IN" ? "hi-IN-MadhurNeural" : "en-US-Neural" },
+              id: generateId(),
+              timestamp: nowIso(),
+            });
+          } else if (v.ttsEngine === "webspeech") {
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(cleanText);
+            u.lang = v.language || "hi-IN";
+            u.rate = v.speed || 1;
+            store.getState().setSpeaking(true);
+            u.onend = () => store.getState().setSpeaking(false);
+            u.onerror = () => store.getState().setSpeaking(false);
+            window.speechSynthesis.speak(u);
+          }
+        }
+
         if (msg.usage) {
           const userMsg = store.getState().messages.slice().reverse().find((m) => m.role === "user");
           store.getState().addUsageLog({

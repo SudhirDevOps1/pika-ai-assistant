@@ -99,6 +99,8 @@ export interface AppSettings {
     language: string;
     speed: number;
     pitch: number;
+    sttEngine: "vosk" | "webspeech";
+    ttsEngine: "edgetts" | "webspeech";
   };
   bridgeUrl: string;
   wakeWordEnabled: boolean;

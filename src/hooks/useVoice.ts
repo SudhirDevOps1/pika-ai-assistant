@@ -64,7 +64,7 @@ export function useVoice(onFinal: (text: string) => void) {
 
       // Browser speech recognition (Chrome / Edge)
       const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SR) {
+      if (SR && useStore.getState().settings.voiceSettings.sttEngine === "webspeech") {
         const rec = new SR();
         rec.lang = useStore.getState().settings.voiceSettings.language || "hi-IN";
         rec.interimResults = true;
