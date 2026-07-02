@@ -95,3 +95,25 @@ This maps the WebSocket route dynamically to the PC from remote clients, enablin
 * **Slash Normalization:** Configured Windows checks to automatically normalize forward slashes (`/`) to backslashes (`\\`) before running pattern matches, neutralizing slash-direction bypasses.
 * **Directory Guarding:** Integrated `is_path_safe` verification directly inside the `list` (directory listing) and `open_explorer` (explorer folder opening) handlers in `cmd_files`, securing those vectors completely.
 
+---
+
+## 9. AI Response Cancellation, Real-Time Sync, and Advanced Voice Selector
+
+### 🔧 Fixes and Features Implemented
+* **Asynchronous Task Architecture & Stop Button:**
+  * Configured Python bridge `pc_bridge.py` message loop to process queries and speech synthesis requests as background `asyncio` tasks instead of blocking the WebSocket read loop.
+  * Added a `cancel` websocket event to terminate ongoing background tasks instantly.
+  * Integrated a red, animated circular **Stop/Cancel Button (⏹️)** in the Chat Input area and voice controller panel that halts backend LLM streaming, terminates audio playback, and cancels SpeechSynthesis immediately.
+* **Real-time Client Broadcast Synchronization:**
+  * Enabled the Python backend to broadcast incoming user inputs and LLM stream tokens to all connected WebSocket sockets instead of responding only to the sender. This keeps mobile browsers and PC displays synchronized in real-time.
+* **In-Memory Speech Generation:**
+  * Optimized Edge-TTS synthesis inside `generate_tts` to accumulate audio bytes in-memory via `communicate.stream()` and base64-encode them directly, eliminating lag caused by temporary file disk writes and reads.
+* **Voice Gender Selection:**
+  * Extended configurations with `voiceGender` (`male` | `female`) and mounted selectors in the Voice settings panel.
+  * Auto-resolves correct Microsoft neural voices (`hi-IN-MadhurNeural` vs `hi-IN-SwaraNeural` for Hindi, `en-US-BrianNeural` vs `en-US-AvaNeural` for English) and searches matching native browser speechSynthesis voice profiles.
+* **Automatic environment variable resolution in paths:**
+  * Added `os.path.expandvars` inside `resolve_path` to support path definitions containing system variables like `%USERNAME%` or `%USERPROFILE%`.
+* **Safe Vosk Git index cleanup:**
+  * Untracked `models/hi` from git and updated `.gitignore` to block `models/` completely, while preserving the backend auto-downloader for local offline users.
+
+
