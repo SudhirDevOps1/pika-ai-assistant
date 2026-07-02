@@ -52,3 +52,6 @@ pc_bridge.log
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Temp reports
+fixes_summary.txt

@@ -63,6 +63,8 @@
 | 📝 **Code Syntax Highlighting** | Built-in PrismJS Tomorrow theme formatting for code blocks in chat logs |
 | 📉 **Token Usage Tracker** | Live API usage dashboard tracking total prompt and completion token counts |
 
+> 📖 **Want to read more about the features?** Check out the [Detailed Features & Advanced Systems](docs/features.md) document.
+
 ---
 
 ## 📸 Screenshots
@@ -313,6 +315,10 @@ npm run dev
 ### ❌ Python bridge Unicode error on startup
 We already fixed CP1252 charmap encoding bugs inside `pc_bridge.py` and `test_bridge.py`. Ensure virtual terminal UTF8 support is enabled on your terminal client.
 
+> 📖 **For a full list of audited issues and applied code changes, check out:**
+> * [Discovered Codebase Issues & Technical Causes](docs/issues.md)
+> * [Implemented Solutions & Codebase Fixes](docs/fixes.md)
+
 ---
 
 ## 🗺️ Roadmap
@@ -333,6 +339,9 @@ We already fixed CP1252 charmap encoding bugs inside `pc_bridge.py` and `test_br
 - [ ] Custom wake word training
 - [ ] Multi-language UI (Hindi/English toggle button)
 - [ ] Voice cloning / custom TTS voices
+
+> 📖 **Check out the detailed future roadmap and development plans:**
+> * [Future Roadmap & Extensions](docs/roadmap.md)
 
 ---
 
