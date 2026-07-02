@@ -32,6 +32,7 @@ const defaultSettings: AppSettings = {
     pitch: 0,
     sttEngine: "webspeech",
     ttsEngine: "edgetts",
+    voiceGender: "female",
   },
   bridgeUrl: "ws://localhost:8765",
   wakeWordEnabled: false,
@@ -58,6 +59,8 @@ interface AssistantState {
   isSpeaking: boolean;
   partialTranscript: string;
   voiceWaveformData: number[];
+  envLoadedKeys: Record<string, boolean>;
+  setEnvLoadedKeys: (keys: Record<string, boolean>) => void;
 
   // System
   systemStatus: SystemStatus | null;
@@ -128,6 +131,8 @@ interface AssistantState {
   addClipboard: (content: string) => void;
   incCommands: () => void;
   tick: () => void;
+  cancelCurrent: (() => void) | null;
+  setCancelCurrent: (fn: (() => void) | null) => void;
 }
 
 export const useStore = create<AssistantState>((set) => ({
@@ -151,6 +156,8 @@ export const useStore = create<AssistantState>((set) => ({
   isSpeaking: false,
   partialTranscript: "",
   voiceWaveformData: new Array(20).fill(0.1),
+  envLoadedKeys: {},
+  setEnvLoadedKeys: (keys) => set({ envLoadedKeys: keys }),
 
   systemStatus: null,
 
@@ -224,6 +231,8 @@ export const useStore = create<AssistantState>((set) => ({
     })),
   incCommands: () => set((s) => ({ commandsExecuted: s.commandsExecuted + 1 })),
   tick: () => set({ nowMs: Date.now() }),
+  cancelCurrent: null,
+  setCancelCurrent: (fn) => set({ cancelCurrent: fn }),
   setApiHealth: (provider, health) =>
     set((s) => ({ apiHealth: { ...s.apiHealth, [provider]: health } })),
 

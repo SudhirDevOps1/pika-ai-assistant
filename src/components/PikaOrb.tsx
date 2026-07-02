@@ -147,6 +147,24 @@ export function PikaOrb() {
           {isListening ? <PhoneOff size={22} /> : <Phone size={22} />}
         </motion.button>
 
+        {(isAiThinking || isSpeaking) && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => {
+              sounds.click();
+              const cancel = useStore.getState().cancelCurrent;
+              if (cancel) cancel();
+            }}
+            title="रोकें (Stop AI)"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-red-600 text-white shadow-lg shadow-red-600/35 transition hover:bg-red-500"
+          >
+            <span className="h-3 w-3 rounded bg-white" />
+          </motion.button>
+        )}
+
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}

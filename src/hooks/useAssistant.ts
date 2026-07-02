@@ -164,9 +164,47 @@ export function useAssistant() {
     }
     if (msg.type === "event") {
       switch (msg.event) {
-        case "connection_ready":
+        case "connection_ready": {
           store.getState().setConnection("connected");
+          const envKeys = (msg.data as any)?.env_keys;
+          if (envKeys) {
+            const loaded: Record<string, boolean> = {};
+            const currentSettings = store.getState().settings;
+            const updatedKeys = { ...currentSettings.apiKeys };
+            let hasChanges = false;
+            for (const [provider, val] of Object.entries(envKeys)) {
+              if (val) {
+                loaded[provider] = true;
+                if (!updatedKeys[provider]) {
+                  updatedKeys[provider] = String(val);
+                  hasChanges = true;
+                }
+              }
+            }
+            store.getState().setEnvLoadedKeys(loaded);
+            if (hasChanges) {
+              store.getState().updateSettings({ apiKeys: updatedKeys });
+            }
+          }
           break;
+        }
+        case "user_message": {
+          const d = msg.data as { text: string; id: string; provider: string };
+          const exists = store.getState().messages.some((m) => m.id === d.id);
+          if (!exists) {
+            window.speechSynthesis.cancel();
+            store.getState().setSpeaking(false);
+            store.getState().setAiThinking(true);
+            store.getState().addMessage({
+              id: d.id,
+              role: "user",
+              content: d.text,
+              provider: d.provider || "user",
+            });
+            store.getState().incCommands();
+          }
+          break;
+        }
         case "system_status":
           store.getState().setSystemStatus(msg.data as never);
           break;
@@ -217,7 +255,9 @@ export function useAssistant() {
         }
       }
     } else if (msg.type === "llm_stream") {
-      if (!streamId.current) return;
+      if (!streamId.current || streamId.current !== msg.id) {
+        streamId.current = msg.id;
+      }
       if (!store.getState().messages.find((m) => m.id === streamId.current)) {
         store.getState().addMessage({ id: streamId.current, role: "assistant", content: "", provider: msg.provider, isStreaming: true });
         store.getState().setAiThinking(false);
@@ -230,9 +270,15 @@ export function useAssistant() {
         if (cleanText) {
           const v = store.getState().settings.voiceSettings;
           if (v.ttsEngine === "edgetts") {
+            let voiceName = "hi-IN-SwaraNeural";
+            if (v.language === "hi-IN") {
+              voiceName = v.voiceGender === "male" ? "hi-IN-MadhurNeural" : "hi-IN-SwaraNeural";
+            } else {
+              voiceName = v.voiceGender === "male" ? "en-US-BrianNeural" : "en-US-AvaNeural";
+            }
             sendRaw({
               type: "tts_speak",
-              params: { text: cleanText, voice: v.language === "hi-IN" ? "hi-IN-MadhurNeural" : "en-US-Neural" },
+              params: { text: cleanText, voice: voiceName },
               id: generateId(),
               timestamp: nowIso(),
             });
@@ -241,6 +287,21 @@ export function useAssistant() {
             const u = new SpeechSynthesisUtterance(cleanText);
             u.lang = v.language || "hi-IN";
             u.rate = v.speed || 1;
+            
+            // Search browser voice database for matching gender
+            const voices = window.speechSynthesis.getVoices();
+            const matchingVoice = voices.find((voice) => {
+              const name = voice.name.toLowerCase();
+              const langMatches = voice.lang.startsWith(v.language);
+              const genderMatches = v.voiceGender === "male"
+                ? (name.includes("male") || name.includes("david") || name.includes("brian") || name.includes("madhur") || name.includes("ravi"))
+                : (name.includes("female") || name.includes("zira") || name.includes("jenny") || name.includes("swara") || name.includes("heera"));
+              return langMatches && genderMatches;
+            });
+            if (matchingVoice) {
+              u.voice = matchingVoice;
+            }
+
             store.getState().setSpeaking(true);
             u.onend = () => store.getState().setSpeaking(false);
             u.onerror = () => store.getState().setSpeaking(false);
@@ -339,6 +400,19 @@ export function useAssistant() {
     }
   }, [store]);
 
+  const cancelCurrent = useCallback(() => {
+    if (store.getState().isConnected && ws.current?.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify({ type: "cancel" }));
+    }
+    window.speechSynthesis.cancel();
+    store.getState().setSpeaking(false);
+    store.getState().setAiThinking(false);
+    if (streamId.current) {
+      store.getState().finalizeMessage(streamId.current);
+      streamId.current = null;
+    }
+  }, [store]);
+
   // Auto connect on mount + reminder clock
   useEffect(() => {
     connect();
@@ -362,5 +436,5 @@ export function useAssistant() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { processInput, resolveConfirmation, connect, disconnect, sendRaw };
+  return { processInput, resolveConfirmation, connect, disconnect, sendRaw, cancelCurrent };
 }

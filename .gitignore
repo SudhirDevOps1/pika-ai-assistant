@@ -55,3 +55,6 @@ desktop.ini
 
 # Temp reports
 fixes_summary.txt
+
+# Vosk Models
+models/

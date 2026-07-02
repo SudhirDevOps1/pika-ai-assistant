@@ -180,6 +180,7 @@ def resolve_path(path_str: str) -> Path:
     home = Path.home()
     if not path_str:
         return home / "Desktop"
+    path_str = os.path.expandvars(path_str)
     low = path_str.lower().strip()
     folders = {
         "desktop": "Desktop", "documents": "Documents", "downloads": "Downloads",
@@ -886,13 +887,13 @@ async def generate_tts(text: str, voice: str = DEFAULT_TTS_VOICE) -> dict:
     if HAS_EDGE_TTS and online:
         try:
             communicate = edge_tts.Communicate(clean, voice)
-            with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
-                tmp_name = tmp.name
-            await communicate.save(tmp_name)
-            with open(tmp_name, "rb") as f:
-                audio = base64.b64encode(f.read()).decode()
-            os.unlink(tmp_name)
-            return {"success": True, "audio": audio, "format": "mp3"}
+            audio_bytes = b""
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    audio_bytes += chunk["data"]
+            if audio_bytes:
+                audio = base64.b64encode(audio_bytes).decode()
+                return {"success": True, "audio": audio, "format": "mp3"}
         except Exception as e:
             logger.warning(f"Edge-TTS failed, trying pyttsx3: {e}")
 
@@ -1049,13 +1050,21 @@ async def handle_query(ws, msg):
     text = params.get("text", "")
     conv_id = msg.get("id")
     
+    # Broadcast the user message so all connected screens render it in real-time
+    await broadcast(json.dumps({
+        "type": "event",
+        "event": "user_message",
+        "data": {"text": text, "id": conv_id, "provider": params.get("provider", "user")},
+        "timestamp": get_utc_iso()
+    }))
+    
     full_response = ""
     async for item in llm_stream(text, params):
         chunk, provider, done = item[0], item[1], item[2]
         usage = item[3] if len(item) > 3 else None
         
         full_response += chunk
-        await ws.send(json.dumps({
+        await broadcast(json.dumps({
             "type": "llm_stream",
             "chunk": chunk,
             "provider": provider,
@@ -1077,7 +1086,7 @@ async def handle_query(ws, msg):
             result = route_command(cmd_data)
             
             # Send execution toast event to frontend
-            await ws.send(json.dumps({
+            await broadcast(json.dumps({
                 "type": "event",
                 "event": "shortcut_executed",
                 "data": {"message": result["message"]},
@@ -1086,10 +1095,29 @@ async def handle_query(ws, msg):
             
             # If screenshot command, send response envelope to render the thumbnail
             if cmd_data.get("category") == "screen" and cmd_data.get("action") == "screenshot" and result["success"]:
-                await ws.send(envelope(conv_id, "success", result["message"], result.get("data")))
+                await broadcast(envelope(conv_id, "success", result["message"], result.get("data")))
         except Exception as e:
             logger.error(f"Failed to execute LLM command: {e}")
 
+
+async def handle_tts_speak(ws, data):
+    try:
+        params = data.get("params", {}) or {}
+        await ws.send(json.dumps({"type": "event", "event": "tts_started", "data": {},
+                                  "timestamp": get_utc_iso()}))
+        result = await generate_tts(params.get("text", ""), params.get("voice", DEFAULT_TTS_VOICE))
+        if result.get("success"):
+            await ws.send(json.dumps({"type": "event", "event": "tts_audio",
+                                      "data": {"audio": result["audio"], "format": result["format"]},
+                                      "timestamp": get_utc_iso()}))
+        await ws.send(json.dumps({"type": "event", "event": "tts_ended", "data": {},
+                                  "timestamp": get_utc_iso()}))
+    except asyncio.CancelledError:
+        try:
+            await ws.send(json.dumps({"type": "event", "event": "tts_ended", "data": {},
+                                      "timestamp": get_utc_iso()}))
+        except Exception:
+            pass
 
 async def handle_client(ws):
     client = f"{ws.remote_address[0]}:{ws.remote_address[1]}"
@@ -1098,6 +1126,7 @@ async def handle_client(ws):
 
     recognizer = get_vosk_recognizer()
     wake_active = False
+    active_tasks = set()
 
     await ws.send(json.dumps({
         "type": "event", "event": "connection_ready",
@@ -1112,6 +1141,15 @@ async def handle_client(ws):
                 "psutil": psutil is not None,
                 "pyautogui": pyautogui is not None,
                 "llm_providers": [p for p in LLM_ORDER if os.getenv(LLM_PROVIDERS[p][2])],
+            },
+            "env_keys": {
+                "groq": os.getenv("GROQ_API_KEY", ""),
+                "gemini": os.getenv("GEMINI_API_KEY", ""),
+                "mistral": os.getenv("MISTRAL_API_KEY", ""),
+                "cerebras": os.getenv("CEREBRAS_API_KEY", ""),
+                "openrouter": os.getenv("OPENROUTER_API_KEY", ""),
+                "zai": os.getenv("ZAI_API_KEY", ""),
+                "deepseek": os.getenv("DEEPSEEK_API_KEY", ""),
             },
         },
         "timestamp": get_utc_iso(),
@@ -1166,21 +1204,35 @@ async def handle_client(ws):
                 await ws.send(json.dumps({"type": "pong", "timestamp": get_utc_iso()}))
                 continue
 
+            if mtype == "cancel":
+                for t in list(active_tasks):
+                    if not t.done():
+                        t.cancel()
+                active_tasks.clear()
+                await ws.send(json.dumps({
+                    "type": "event", "event": "tts_ended", "data": {},
+                    "timestamp": get_utc_iso()
+                }))
+                continue
+
             if mtype == "tts_speak":
-                params = data.get("params", {}) or {}
-                await ws.send(json.dumps({"type": "event", "event": "tts_started", "data": {},
-                                          "timestamp": get_utc_iso()}))
-                result = await generate_tts(params.get("text", ""), params.get("voice", DEFAULT_TTS_VOICE))
-                if result.get("success"):
-                    await ws.send(json.dumps({"type": "event", "event": "tts_audio",
-                                              "data": {"audio": result["audio"], "format": result["format"]},
-                                              "timestamp": get_utc_iso()}))
-                await ws.send(json.dumps({"type": "event", "event": "tts_ended", "data": {},
-                                          "timestamp": get_utc_iso()}))
+                for t in list(active_tasks):
+                    if not t.done():
+                        t.cancel()
+                active_tasks.clear()
+                task = asyncio.create_task(handle_tts_speak(ws, data))
+                active_tasks.add(task)
+                task.add_done_callback(active_tasks.discard)
                 continue
 
             if mtype == "query":
-                await handle_query(ws, data)
+                for t in list(active_tasks):
+                    if not t.done():
+                        t.cancel()
+                active_tasks.clear()
+                task = asyncio.create_task(handle_query(ws, data))
+                active_tasks.add(task)
+                task.add_done_callback(active_tasks.discard)
                 continue
 
             if mtype == "command":
@@ -1221,6 +1273,9 @@ async def handle_client(ws):
         logger.error(f"handler error: {e}")
     finally:
         status_task.cancel()
+        for t in list(active_tasks):
+            if not t.done():
+                t.cancel()
         connected_clients.discard(ws)
         logger.info(f"Client disconnected: {client} (total {len(connected_clients)})")
 

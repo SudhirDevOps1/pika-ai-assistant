@@ -7,6 +7,7 @@ export interface AssistantApi {
   connect: () => void;
   disconnect: () => void;
   sendRaw: (msg: WSMessage) => void;
+  cancelCurrent: () => void;
 }
 
 export const AssistantContext = createContext<AssistantApi | null>(null);

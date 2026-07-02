@@ -36,6 +36,7 @@ export function SettingsPanel() {
   const settings = useStore((s) => s.settings);
   const updateSettings = useStore((s) => s.updateSettings);
   const apiHealth = useStore((s) => s.apiHealth);
+  const envLoadedKeys = useStore((s) => s.envLoadedKeys);
   const commandsExecuted = useStore((s) => s.commandsExecuted);
   const { connect } = useAssistantApi();
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
@@ -100,6 +101,11 @@ export function SettingsPanel() {
                     }}
                   />
                   <span className="text-sm font-medium text-white">{p.name}</span>
+                  {envLoadedKeys[p.id] && (
+                    <span className="rounded bg-green-500/10 px-1.5 py-0.5 text-[9px] font-medium text-green-400 border border-green-500/15">
+                      .env से लोडेड
+                    </span>
+                  )}
                   <span className="text-[10px] text-white/30">{p.model}</span>
                   <div className="ml-auto flex items-center gap-2">
                     {health?.latencyMs && <span className="text-[10px] text-white/40">{health.latencyMs}ms</span>}
@@ -206,6 +212,25 @@ export function SettingsPanel() {
             >
               <option value="edgetts" className="bg-navy-800">न्यूरल वॉयस (Online PC)</option>
               <option value="webspeech" className="bg-navy-800">लोकल वॉयस (Offline Browser)</option>
+            </select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/70">आवाज़ का जेंडर</span>
+            <select
+              value={settings.voiceSettings.voiceGender}
+              onChange={(e) =>
+                updateSettings({
+                  voiceSettings: {
+                    ...settings.voiceSettings,
+                    voiceGender: e.target.value as "male" | "female",
+                  },
+                })
+              }
+              className="rounded-lg bg-white/10 px-3 py-1.5 text-sm text-white outline-none"
+            >
+              <option value="female" className="bg-navy-800">महिला (Female)</option>
+              <option value="male" className="bg-navy-800">पुरुष (Male)</option>
             </select>
           </div>
 

@@ -11,6 +11,7 @@ import { VoiceWaveform } from "./VoiceWaveform";
 import { SUGGESTIONS } from "@/lib/constants";
 
 export function ChatInterface() {
+  const isSpeaking = useStore((s) => s.isSpeaking);
   const messages = useStore((s) => s.messages);
   const isAiThinking = useStore((s) => s.isAiThinking);
   const isListening = useStore((s) => s.isListening);
@@ -97,18 +98,32 @@ export function ChatInterface() {
         <div className="glass-strong flex items-center gap-3 rounded-2xl p-3">
           <VoiceButton onToggle={toggle} />
           <input
+            id="pika-transcript-input"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && send()}
             placeholder="टाइप करो या माइक दबाओ..."
             className="flex-1 bg-transparent text-white placeholder-white/40 outline-none"
           />
-          <button
-            onClick={send}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white transition hover:bg-violet-500 active:scale-90"
-          >
-            <Send size={18} />
-          </button>
+          {isAiThinking || isSpeaking ? (
+            <button
+              onClick={() => {
+                const cancel = useStore.getState().cancelCurrent;
+                if (cancel) cancel();
+              }}
+              title="रोकें (Stop AI)"
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-600 text-white transition hover:bg-red-500 active:scale-90"
+            >
+              <span className="h-3 w-3 rounded bg-white" />
+            </button>
+          ) : (
+            <button
+              onClick={send}
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white transition hover:bg-violet-500 active:scale-90"
+            >
+              <Send size={18} />
+            </button>
+          )}
         </div>
       </div>
     </div>

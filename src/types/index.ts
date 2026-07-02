@@ -101,6 +101,7 @@ export interface AppSettings {
     pitch: number;
     sttEngine: "vosk" | "webspeech";
     ttsEngine: "edgetts" | "webspeech";
+    voiceGender: "male" | "female";
   };
   bridgeUrl: string;
   wakeWordEnabled: boolean;
