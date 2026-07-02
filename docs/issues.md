@@ -87,3 +87,16 @@ When the backend Python bridge was disconnected, the frontend simulated CPU, RAM
 
 ### ⚙️ Technical Cause
 The React hooks contained mock interval loops and `demoMode` state variables that generated fake telemetry metrics to run a local simulation mode.
+
+---
+
+## 8. Path-Traversal & System Directory Security Bypass
+
+### ❌ Symptom
+Under certain conditions, a malicious or mistranslated request could read, delete, list, or open folders in protected system locations (like `C:\Windows`), bypassing directory security.
+
+### ⚙️ Technical Cause
+* **Regex slash-direction dependency:** The `is_path_safe` regex filters checked explicitly for backslashes `\\` to block folders like `C:\Windows`. If a client requested access using forward slashes (e.g. `C:/Windows/System32`), the path bypassed the regex.
+* **Relative Path Traversal (`..`):** Using relative traversal patterns (e.g. `Documents/../../Windows`) bypassed literal string matches.
+* **Lack of checks in Directory Actions:** The file actions `list` and `open_explorer` did not check `is_path_safe(p)` before executing, exposing system directories to indexing and browsing.
+

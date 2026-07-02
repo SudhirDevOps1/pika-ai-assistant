@@ -85,3 +85,13 @@ This maps the WebSocket route dynamically to the PC from remote clients, enablin
 ### 🔧 Fixes Implemented
 * **Cleanup:** Removed the `demoConversation`, `demoInfoResponse`, and simulated telemetry interval tickers from the React hook states.
 * **Verification:** Forced the application to run strictly in production mode. If disconnected from the bridge, the UI accurately shows the offline status and raises connection errors.
+
+---
+
+## 8. Resolved Path-Traversal Bypass and Secured Directory Actions
+
+### 🔧 Fixes Implemented
+* **Canonical Path Resolution:** Rewrote `is_path_safe(p)` in `pc_bridge.py` to resolve absolute paths using `Path.resolve()` before checks, resolving traversals like `..`.
+* **Slash Normalization:** Configured Windows checks to automatically normalize forward slashes (`/`) to backslashes (`\\`) before running pattern matches, neutralizing slash-direction bypasses.
+* **Directory Guarding:** Integrated `is_path_safe` verification directly inside the `list` (directory listing) and `open_explorer` (explorer folder opening) handlers in `cmd_files`, securing those vectors completely.
+
