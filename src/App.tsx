@@ -24,6 +24,7 @@ import { ToastContainer } from "@/components/Toast";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { FuturisticDashboard } from "@/components/FuturisticDashboard";
 import { LivePiP } from "@/components/LivePiP";
+import { TerminalConsole } from "@/components/TerminalConsole";
 
 export default function App() {
   const api = useAssistant();
@@ -118,6 +119,7 @@ function AppShell() {
 
         {pipMode && <PiPWindow />}
         <LivePiP />
+        <TerminalConsole />
         <ToastContainer />
         <ConfirmationDialog />
       </div>

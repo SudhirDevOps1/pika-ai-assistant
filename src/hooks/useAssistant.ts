@@ -51,7 +51,8 @@ export function useAssistant() {
   // Process a user text input (from typing or voice)
   const processInput = useCallback((text: string) => {
     if (!text.trim()) return;
-    store.getState().addMessage({ role: "user", content: text });
+    const msgId = generateId();
+    store.getState().addMessage({ id: msgId, role: "user", content: text });
     store.getState().incCommands();
 
     const result = parseCommand(text);
@@ -122,10 +123,10 @@ export function useAssistant() {
           model: state.settings.providerModels[state.settings.aiProvider],
           apiKeys: state.settings.apiKeys,
         },
-        id: generateId(),
+        id: msgId,
         timestamp: nowIso(),
       };
-      streamId.current = msg.id;
+      streamId.current = msgId + "-reply";
       ws.current.send(JSON.stringify(msg));
     } else {
       sounds.error();
@@ -203,6 +204,7 @@ export function useAssistant() {
             });
             store.getState().incCommands();
           }
+          streamId.current = d.id + "-reply";
           break;
         }
         case "system_status":
@@ -255,8 +257,9 @@ export function useAssistant() {
         }
       }
     } else if (msg.type === "llm_stream") {
-      if (!streamId.current || streamId.current !== msg.id) {
-        streamId.current = msg.id;
+      const replyId = msg.id + "-reply";
+      if (!streamId.current || streamId.current !== replyId) {
+        streamId.current = replyId;
       }
       if (!store.getState().messages.find((m) => m.id === streamId.current)) {
         store.getState().addMessage({ id: streamId.current, role: "assistant", content: "", provider: msg.provider, isStreaming: true });
