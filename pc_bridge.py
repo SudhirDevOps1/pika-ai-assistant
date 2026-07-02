@@ -46,7 +46,10 @@ import urllib.parse
 import urllib.request
 import uuid
 import webbrowser
-from datetime import datetime
+from datetime import datetime, timezone
+
+def get_utc_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
 from pathlib import Path
 
 # Force UTF-8 encoding on standard streams to prevent Windows CP1252 charmap encoding errors
@@ -677,7 +680,7 @@ def cmd_reminders(action, params):
                     broadcast(json.dumps({
                         "type": "event", "event": "reminder_triggered",
                         "data": {"id": rid, "text": text},
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": get_utc_iso(),
                     })), _main_loop)
             logger.info(f"Reminder fired: {text}")
 
@@ -1005,7 +1008,7 @@ def envelope(msg_id, status, message, data=None, confirmation_id=None):
     return json.dumps({
         "type": "response", "status": status, "data": data, "message": message,
         "confirmation_id": confirmation_id, "id": msg_id,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": get_utc_iso(),
     })
 
 
@@ -1023,9 +1026,9 @@ async def status_loop(ws):
                     if b.percent < 20 and not b.power_plugged:
                         await ws.send(json.dumps({"type": "event", "event": "battery_alert",
                                                   "data": {"percent": int(b.percent)},
-                                                  "timestamp": datetime.utcnow().isoformat()}))
+                                                  "timestamp": get_utc_iso()}))
             await ws.send(json.dumps({"type": "event", "event": "system_status", "data": data,
-                                      "timestamp": datetime.utcnow().isoformat()}))
+                                      "timestamp": get_utc_iso()}))
             await asyncio.sleep(5)
     except Exception:
         pass
@@ -1050,7 +1053,7 @@ async def handle_query(ws, msg):
             "id": conv_id,
             "done": done,
             "usage": usage,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": get_utc_iso()
         }))
         if done:
             break
@@ -1069,7 +1072,7 @@ async def handle_query(ws, msg):
                 "type": "event",
                 "event": "shortcut_executed",
                 "data": {"message": result["message"]},
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": get_utc_iso()
             }))
             
             # If screenshot command, send response envelope to render the thumbnail
@@ -1102,7 +1105,7 @@ async def handle_client(ws):
                 "llm_providers": [p for p in LLM_ORDER if os.getenv(LLM_PROVIDERS[p][2])],
             },
         },
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": get_utc_iso(),
     }))
 
     status_task = asyncio.create_task(status_loop(ws))
@@ -1123,24 +1126,24 @@ async def handle_client(ws):
                         wake_active = True
                         await ws.send(json.dumps({"type": "event", "event": "wake_word",
                                                   "data": {"text": text},
-                                                  "timestamp": datetime.utcnow().isoformat()}))
+                                                  "timestamp": get_utc_iso()}))
                         continue
                     # instant voice shortcuts
                     result, reply = try_voice_shortcut(text)
                     if result:
                         await ws.send(json.dumps({"type": "event", "event": "shortcut_executed",
                                                   "data": {"text": text, "message": reply},
-                                                  "timestamp": datetime.utcnow().isoformat()}))
+                                                  "timestamp": get_utc_iso()}))
                     await ws.send(json.dumps({"type": "event", "event": "voice_final",
                                               "data": {"text": text, "wake_active": wake_active},
-                                              "timestamp": datetime.utcnow().isoformat()}))
+                                              "timestamp": get_utc_iso()}))
                     wake_active = False
                 else:
                     partial = json.loads(recognizer.PartialResult()).get("partial", "")
                     if partial:
                         await ws.send(json.dumps({"type": "event", "event": "voice_partial",
                                                   "data": {"text": partial},
-                                                  "timestamp": datetime.utcnow().isoformat()}))
+                                                  "timestamp": get_utc_iso()}))
                 continue
 
             # ── JSON frames ──
@@ -1151,20 +1154,20 @@ async def handle_client(ws):
 
             mtype = data.get("type")
             if mtype == "ping":
-                await ws.send(json.dumps({"type": "pong", "timestamp": datetime.utcnow().isoformat()}))
+                await ws.send(json.dumps({"type": "pong", "timestamp": get_utc_iso()}))
                 continue
 
             if mtype == "tts_speak":
                 params = data.get("params", {}) or {}
                 await ws.send(json.dumps({"type": "event", "event": "tts_started", "data": {},
-                                          "timestamp": datetime.utcnow().isoformat()}))
+                                          "timestamp": get_utc_iso()}))
                 result = await generate_tts(params.get("text", ""), params.get("voice", DEFAULT_TTS_VOICE))
                 if result.get("success"):
                     await ws.send(json.dumps({"type": "event", "event": "tts_audio",
                                               "data": {"audio": result["audio"], "format": result["format"]},
-                                              "timestamp": datetime.utcnow().isoformat()}))
+                                              "timestamp": get_utc_iso()}))
                 await ws.send(json.dumps({"type": "event", "event": "tts_ended", "data": {},
-                                          "timestamp": datetime.utcnow().isoformat()}))
+                                          "timestamp": get_utc_iso()}))
                 continue
 
             if mtype == "query":
