@@ -15,6 +15,16 @@ from pathlib import Path
 
 os.environ["PYTHONUTF8"] = "1"
 
+# Force UTF-8 encoding on standard streams to prevent Windows CP1252 charmap encoding errors
+import sys
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
+
 ROOT = Path(__file__).parent.resolve()
 os.chdir(ROOT)
 
@@ -140,7 +150,9 @@ print(f"{color('cyan', '║')}  {color('white', 'Web UI:')}     {color('cyan', '
 print(f"{color('cyan', '║')}  {color('white', 'PC Bridge:')}  {color('cyan', 'ws://localhost:8765')}                    {color('cyan', '║')}")
 print(f"{color('cyan', '║')}                                                  {color('cyan', '║')}")
 print(f"{color('cyan', '║')}  {color('purple', 'PHONE (same WiFi):')}                          {color('cyan', '║')}")
-print(f"{color('cyan', '║')}  {color('cyan', f'   http://{lan}:3000')}")
+url_str = f"   http://{lan}:3000"
+padding = 47 - len(url_str)
+print(f"{color('cyan', '║')}  {color('cyan', url_str)}{' ' * padding}{color('cyan', '║')}")
 print(f"{color('cyan', '║')}                                                  {color('cyan', '║')}")
 print(f"{color('cyan', '║')}  {color('dim', 'Ctrl+C = stop | Close bridge = stop it')}      {color('cyan', '║')}")
 print(f"{color('cyan', '╚══════════════════════════════════════════════════╝')}")

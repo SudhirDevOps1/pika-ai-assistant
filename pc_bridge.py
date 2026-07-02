@@ -49,6 +49,15 @@ import webbrowser
 from datetime import datetime
 from pathlib import Path
 
+# Force UTF-8 encoding on standard streams to prevent Windows CP1252 charmap encoding errors
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
+
 # ─── Required dependency ────────────────────────────────────────────────────
 try:
     import websockets
