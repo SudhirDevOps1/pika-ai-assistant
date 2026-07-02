@@ -200,8 +200,13 @@ BLOCKED_PATTERNS = [
 
 
 def is_path_safe(p: Path) -> bool:
-    s = str(p)
-    return not any(re.search(pat, s, re.IGNORECASE) for pat in BLOCKED_PATTERNS)
+    try:
+        resolved_path = str(p.resolve())
+    except Exception:
+        resolved_path = str(p.absolute())
+    if IS_WIN:
+        resolved_path = resolved_path.replace("/", "\\")
+    return not any(re.search(pat, resolved_path, re.IGNORECASE) for pat in BLOCKED_PATTERNS)
 
 
 def ok(msg: str, data=None):
@@ -440,12 +445,16 @@ def cmd_files(action, params):
             return ok(f"डिलीट: {p}")
         if action == "list":
             p = resolve_path(params.get("path", ""))
+            if not is_path_safe(p):
+                return err("सुरक्षा: यह पथ प्रतिबंधित है।")
             if not p.exists():
                 return err("पथ नहीं मिला।")
             items = [{"name": x.name, "is_dir": x.is_dir()} for x in list(p.iterdir())[:50]]
             return ok(f"{len(items)} आइटम", {"path": str(p), "items": items})
         if action == "open_explorer":
             p = resolve_path(params.get("path", ""))
+            if not is_path_safe(p):
+                return err("सुरक्षा: यह पथ प्रतिबंधित है।")
             os.startfile(str(p)) if IS_WIN else run(["xdg-open", str(p)])
             return ok(f"एक्सप्लोरर: {p}")
         if action == "read":
